@@ -81,12 +81,14 @@ class Ged2Genealogy(Ged2Csv):
                 # Get the RIN ID of the individuals parents.
                 # If the parent does not exist, set to 0.
 
+                # Get father ID.
                 fa = record.father
                 fa_ref = '0'
                 if not fa is None:
                     if fa.xref_id is not None:
                         fa_ref = self.format_rin(fa.xref_id)
 
+                # Get mother ID.
                 mo = record.mother
                 mo_ref = '0'
                 if not mo is None:
@@ -97,40 +99,6 @@ class Ged2Genealogy(Ged2Csv):
                 ind_records = {r.tag: r for r in record.sub_records}
 
                 sex = ind_records['SEX'].value
-
-                birth = ind_records.get('BIRT')
-
-                # NOTE: some individuals are "unknown" in AEBS and usually have no "BIRT" record.
-                # Such individuals will always have parental records "0". Therefore, when reconstructing
-                # a genealogy in "scripts/lineage.py", any lineage will stop at such an "unknown"
-                # individual.
-
-                # If birth year or place is not found in record, it is set to NA.
-                birth_year = 'NA'
-                birth_place = 'NA'
-                if birth is not None:
-                    birth_records = {r.tag: r for r in birth.sub_records}
-
-                    # Get birth year of individual.
-                    birth_date_record = birth_records.get('DATE')  # Date record, or None.
-                    if birth_date_record is not None:
-                        # Get the birth date as a string.
-                        birth_date_str = str(birth_date_record.value)
-
-                        # Unfortunately, the dates are inconsistently formateed.
-                        # Use dateutils to automatically parse the date and get the birth year.
-                        # If this fails, we simply skip it.
-                        try:
-                            dt = parse(birth_date_str)
-                            birth_year = dt.year
-                        except:
-                            birth_year = None
-                            logging.info('Could not parse birth date of record %s: %s' % (ind_ref, birth_date_str))
-
-                    # Get birth place of individual.
-                    birth_place = birth_records.get('PLAC')  # Get the record with tag "PLAC".
-                    if birth_place is not None:
-                        birth_place = birth_place.value
 
                 # Append a tuple to the data list.
                 record = (ind_ref, fa_ref, mo_ref, sex)
@@ -164,7 +132,7 @@ class GetBirthYear(Ged2Csv):
 
                 birth = ind_records.get('BIRT')
 
-                # If birth year or place is not found in record, it is set to NA.
+                # If birth year is not found in record, it is set to NA.
                 birth_year = 'NA'
                 if birth is not None:
                     birth_records = {r.tag: r for r in birth.sub_records}
