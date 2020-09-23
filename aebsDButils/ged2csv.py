@@ -3,7 +3,6 @@
 '''
 
 from ged4py import GedcomReader
-from pedgraph.DataStructures import Record, Genealogy
 import sys, re, logging
 
 logging.basicConfig(level=logging.INFO)
