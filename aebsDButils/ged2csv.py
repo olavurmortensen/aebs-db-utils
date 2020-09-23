@@ -4,6 +4,7 @@
 
 from ged4py import GedcomReader
 import sys, re, logging
+from dateutil.parser import parse
 
 logging.basicConfig(level=logging.INFO)
 
@@ -14,7 +15,7 @@ class Ged2Csv(object):
          self.csv_path = csv_path
          self.data = []
 
-    def format_rin(rin):
+    def format_rin(self, rin):
         '''
         Extract RIN from GEDCOM individual ID. For example, if the ID in the GEDCOM
         file is "@I123@", we get the ID "123".
@@ -29,10 +30,6 @@ class Ged2Csv(object):
 
         sep = ','
 
-        # Ensure the columns in the header are separated by a comma.
-        if header is not None:
-            assert sep in header, 'Error: field separator "%s" is not in header "%s".' % (sep, header)
-
         # Various checks for the data to write.
         assert len(self.data) > 0, 'Error: no data to write.'
         assert isinstance(self.data, list), 'Error: "data" must be a list of tuples.'
@@ -43,7 +40,13 @@ class Ged2Csv(object):
 
         for i, record in enumerate(self.data):
             assert isinstance(record, tuple), 'Error: "data" must be a list of tuples.'
-            assert len(record) == len(record[0]), 'Error: record %d in data has length %d.' % len(record)
+            assert len(record) == len_record0, 'Error: record %d in data has length %d.' % len(record)
+
+        if header is not None:
+            assert sep in header, 'Error: field separator "%s" is not in header "%s".' % (sep, header)
+            assert len(header.split(',')) == len_record0, 'Error: header and records do not have the same number of columns.'
+
+            logging.info('Writing file with columns: ' + header)
 
         with open(self.csv_path, 'w') as fid:
             if header is not None:
@@ -56,7 +59,7 @@ class Ged2Csv(object):
 class Ged2Genealogy(Ged2Csv):
     def __init__(self, ged_path, csv_path):
          # Call super-class constructor to initalize genealogy.
-         super(Ged2Genealogy, self, ged_path, csv_path).__init__()
+         super(Ged2Genealogy, self).__init__(ged_path, csv_path)
 
          self.ged_reader()
 
@@ -73,22 +76,22 @@ class Ged2Genealogy(Ged2Csv):
             # iterate over all INDI records
             for i, record in enumerate(parser.records0('INDI')):
                 # Get individual RIN ID.
-                ind_ref = int(self.format_rin(record.xref_id))
+                ind_ref = self.format_rin(record.xref_id)
 
                 # Get the RIN ID of the individuals parents.
                 # If the parent does not exist, set to 0.
 
                 fa = record.father
-                fa_ref = 0
+                fa_ref = '0'
                 if not fa is None:
                     if fa.xref_id is not None:
-                        fa_ref = int(self.format_rin(fa.xref_id))
+                        fa_ref = self.format_rin(fa.xref_id)
 
                 mo = record.mother
-                mo_ref = 0
+                mo_ref = '0'
                 if not mo is None:
                     if mo.xref_id is not None:
-                        mo_ref = int(self.format_rin(mo.xref_id))
+                        mo_ref = self.format_rin(mo.xref_id)
 
                 # Get information about individual in a dictionary.
                 ind_records = {r.tag: r for r in record.sub_records}
@@ -109,26 +112,26 @@ class Ged2Genealogy(Ged2Csv):
                     birth_records = {r.tag: r for r in birth.sub_records}
 
                     # Get birth year of individual.
-                    birth_date = birth_records.get('DATE')  # Date record, or None.
-                    if birth_date is not None:
-                        birth_date = birth_date.value  # DateValue object.
-                        birth_date = birth_date.fmt()  # Birth date as a string.
-                        # Match birth year in string using regex, as format is inconsistent.
-                        match = re.search('\d{4}', birth_date)  # Find four letter digit.
-                        if match:
-                            birth_year = birth_date[match.start():match.end()]  # Birth year as a string.
+                    birth_date_record = birth_records.get('DATE')  # Date record, or None.
+                    if birth_date_record is not None:
+                        # Get the birth date as a string.
+                        birth_date_str = str(birth_date_record.value)
 
-                            # If the birth year is not an integer, something probably went wrong.
-                            # Just make a warning.
-                            try:
-                                _ = int(birth_year)
-                            except ValueError:
-                                logging.warning('Non integer birth year in record %d: %s' %(ind_ref, birth_year))
+                        # Unfortunately, the dates are inconsistently formateed.
+                        # Use dateutils to automatically parse the date and get the birth year.
+                        # If this fails, we simply skip it.
+                        try:
+                            dt = parse(birth_date_str)
+                            birth_year = dt.year
+                        except:
+                            birth_year = None
+                            logging.info('Could not parse birth date of record %s: %s' % (ind_ref, birth_date_str))
 
                     # Get birth place of individual.
                     birth_place = birth_records.get('PLAC')  # Get the record with tag "PLAC".
                     if birth_place is not None:
                         birth_place = birth_place.value
+                        print(birth_place)
 
                 # Append a tuple to the data list.
                 record = (ind_ref, fa_ref, mo_ref, sex)
