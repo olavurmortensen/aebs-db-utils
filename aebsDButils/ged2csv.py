@@ -137,3 +137,55 @@ class Ged2Genealogy(Ged2Csv):
                 self.data.append(record)
 
 
+class GetBirthYear(Ged2Csv):
+    def __init__(self, ged_path, csv_path):
+         # Call super-class constructor to initalize genealogy.
+         super(GetBirthYear, self).__init__(ged_path, csv_path)
+
+         self.ged_reader()
+
+         header = 'ind,birth_year'
+
+         self.write_csv(header)
+
+
+    def ged_reader(self):
+        count_none_rin = 0
+
+        # Initialize GED parser.
+        with GedcomReader(self.ged_path, encoding='utf-8') as parser:
+            # iterate over all INDI records
+            for i, record in enumerate(parser.records0('INDI')):
+                # Get individual RIN ID.
+                ind_ref = self.format_rin(record.xref_id)
+
+                # Get information about individual in a dictionary.
+                ind_records = {r.tag: r for r in record.sub_records}
+
+                birth = ind_records.get('BIRT')
+
+                # If birth year or place is not found in record, it is set to NA.
+                birth_year = 'NA'
+                if birth is not None:
+                    birth_records = {r.tag: r for r in birth.sub_records}
+
+                    # Get birth year of individual.
+                    birth_date_record = birth_records.get('DATE')  # Date record, or None.
+                    if birth_date_record is not None:
+                        # Get the birth date as a string.
+                        birth_date_str = str(birth_date_record.value)
+
+                        # Unfortunately, the dates are inconsistently formateed.
+                        # Use dateutils to automatically parse the date and get the birth year.
+                        # If this fails, we simply skip it.
+                        try:
+                            dt = parse(birth_date_str)
+                            birth_year = str(dt.year)
+                        except:
+                            logging.info('Could not parse birth date of record %s: %s' % (ind_ref, birth_date_str))
+
+                # Append a tuple to the data list.
+                record = (ind_ref, birth_year)
+                self.data.append(record)
+
+
