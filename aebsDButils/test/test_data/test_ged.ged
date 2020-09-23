@@ -20,7 +20,6 @@
 1 NAME John //
 1 SEX M
 1 BIRT
-2 DATE 1990
 2 PLAC Fakeplace
 1 REFN 1
 1 FAMC @F1@
@@ -29,7 +28,6 @@
 1 SEX M
 1 BIRT
 2 DATE 1950
-2 PLAC Fakeplace
 1 REFN 2
 1 FAMS @F1@
 1 FAMC @F2@

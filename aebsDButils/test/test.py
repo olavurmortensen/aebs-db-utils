@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest, logging
-from aebsDButils.ged2csv import Ged2Genealogy
+from aebsDButils.ged2csv import Ged2Genealogy, GetBirthYear
 from aebsDButils.read_csv import read_csv
 
 logging.basicConfig(level=logging.INFO)
@@ -9,61 +9,121 @@ logging.basicConfig(level=logging.INFO)
 
 TEST_DATA_DIR = 'aebsDButils/test/test_data/'
 
-TEST_GED = TEST_DATA_DIR + 'small_test_tree.ged'
-TEST_CSV = TEST_DATA_DIR +'small_test_tree.csv'
-TEST_CSV_CORRECT = TEST_DATA_DIR +'gen_correct.csv'
-TEST_IND = TEST_DATA_DIR +'test_individuals.txt'
+# Test GED file to read from.
+TEST_GED = TEST_DATA_DIR + 'test_ged.ged'
 
+# Expected results.
+EXPECTED_GEN = TEST_DATA_DIR + 'expected_gen.csv'
+EXPECTED_BY = TEST_DATA_DIR + 'expected_by.csv'
+EXPECTED_BP = TEST_DATA_DIR + 'expected_bp.csv'
 
-class Tests(unittest.TestCase):
+# Actual results.
+ACTUAL_GEN = TEST_DATA_DIR + 'actual_gen.csv'
+ACTUAL_BY = TEST_DATA_DIR + 'actual_by.csv'
+ACTUAL_BP = TEST_DATA_DIR + 'actual_bp.csv'
+
+class TestGen(unittest.TestCase):
 
     def setUp(self):
-        logging.info('Set up tests')
+        logging.info('Setup genealogy tests')
         logging.info('------------')
 
     def test_write_gen_csv(self):
-        logging.info('Write AEBS genealogy to CSV')
+        logging.info('Read genealogy from GED and write to CSV')
         logging.info('------------')
 
         # Read the GED file and write genealogy to CSV.
-        Ged2Genealogy(TEST_GED, TEST_CSV)
+        Ged2Genealogy(TEST_GED, ACTUAL_GEN)
 
         # Read the CSV that was just created.
-        data = read_csv(TEST_CSV)
+        actual_data = read_csv(ACTUAL_GEN)
 
         # Read the "correct" data.
-        correct_data = read_csv(TEST_CSV_CORRECT)
+        expected_data = read_csv(EXPECTED_GEN)
 
-        self.assertTrue(len(data) == len(correct_data), 'Expected %d rows in genealogy but got %d.' %(len(correct_data), len(data)))
+        self.assertTrue(len(actual_data) == len(expected_data), 'Expected %d rows in genealogy but got %d.' %(len(expected_data), len(actual_data)))
 
         # Sort both lists by the individual ID (first element of tuple), so
         # that they can be compared directly.
-        data = sorted(data, key=lambda x: x[0])
-        correct_data = sorted(correct_data, key=lambda x: x[0])
+        actual_data = sorted(actual_data, key=lambda x: x[0])
+        expected_data = sorted(expected_data, key=lambda x: x[0])
 
         # Individual IDs.
-        ind = [d[0] for d in data]
+        ind_actual = [d[0] for d in actual_data]
 
         # Make sure the IDs are unique.
-        self.assertTrue(len(ind) == len(set(ind)), 'Individual IDs are not unique.')
+        self.assertTrue(len(ind_actual) == len(set(ind_actual)), 'Individual IDs are not unique.')
 
         # Correct individual IDs.
-        ind_correct = [d[0] for d in correct_data]
+        ind_expected = [d[0] for d in expected_data]
 
         # Make sure the indivual IDs match the expected.
-        diff = set(ind).symmetric_difference(ind_correct)
+        diff = set(ind_actual).symmetric_difference(ind_expected)
         self.assertTrue(len(diff) == 0, 'The indivual IDs do not match the expected.')
 
         # Make sure all the data in the records match the expected.
-        for i in range(len(data)):
-            rec = data[i]
-            rec_correct = correct_data[i]
+        for i in range(len(actual_data)):
+            rec_actual = actual_data[i]
+            rec_expected = expected_data[i]
 
-            self.assertEqual(data[i], correct_data[i], 'Data in record for individual ID %s does not match the expected.' % data[i][0])
+            self.assertEqual(actual_data[i], expected_data[i], 'Data in record for individual ID %s does not match the expected.' % actual_data[i][0])
 
     def tearDown(self):
         logging.info('------------')
         logging.info('Teardown')
+
+class TestGetBirthYear(unittest.TestCase):
+
+    def setUp(self):
+        logging.info('Setup birth year tests')
+        logging.info('------------')
+
+    def test_write_gen_csv(self):
+        # FIXME: a lot of redundant code here. How to generalize?
+
+        logging.info('Read birth year from GED and write to CSV')
+        logging.info('------------')
+
+        # Read the GED file and write genealogy to CSV.
+        GetBirthYear(TEST_GED, ACTUAL_BY)
+
+        # Read the CSV that was just created.
+        actual_data = read_csv(ACTUAL_BY)
+
+        # Read the "correct" data.
+        expected_data = read_csv(EXPECTED_BY)
+
+        self.assertTrue(len(actual_data) == len(expected_data), 'Expected %d rows in genealogy but got %d.' %(len(expected_data), len(actual_data)))
+
+        # Sort both lists by the individual ID (first element of tuple), so
+        # that they can be compared directly.
+        actual_data = sorted(actual_data, key=lambda x: x[0])
+        expected_data = sorted(expected_data, key=lambda x: x[0])
+
+        # Individual IDs.
+        ind_actual = [d[0] for d in actual_data]
+
+        # Make sure the IDs are unique.
+        self.assertTrue(len(ind_actual) == len(set(ind_actual)), 'Individual IDs are not unique.')
+
+        # Correct individual IDs.
+        ind_expected = [d[0] for d in expected_data]
+
+        # Make sure the indivual IDs match the expected.
+        diff = set(ind_actual).symmetric_difference(ind_expected)
+        self.assertTrue(len(diff) == 0, 'The indivual IDs do not match the expected.')
+
+        # Make sure all the data in the records match the expected.
+        for i in range(len(actual_data)):
+            rec_actual = actual_data[i]
+            rec_expected = expected_data[i]
+
+            self.assertEqual(actual_data[i], expected_data[i], 'Data in record for individual ID %s does not match the expected.' % actual_data[i][0])
+
+    def tearDown(self):
+        logging.info('------------')
+        logging.info('Teardown')
+
 
 if __name__ == '__main__':
     unittest.main()
