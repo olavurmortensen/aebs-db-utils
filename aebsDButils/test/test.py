@@ -20,7 +20,7 @@ class Tests(unittest.TestCase):
         logging.info('Set up tests')
         logging.info('------------')
 
-    def write_gen_csv(self):
+    def test_write_gen_csv(self):
         logging.info('Write AEBS genealogy to CSV')
         logging.info('------------')
         Ged2Genealogy(TEST_GED, TEST_CSV)
