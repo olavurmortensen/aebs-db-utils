@@ -131,7 +131,6 @@ class Ged2Genealogy(Ged2Csv):
                     birth_place = birth_records.get('PLAC')  # Get the record with tag "PLAC".
                     if birth_place is not None:
                         birth_place = birth_place.value
-                        print(birth_place)
 
                 # Append a tuple to the data list.
                 record = (ind_ref, fa_ref, mo_ref, sex)
