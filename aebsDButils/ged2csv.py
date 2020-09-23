@@ -3,7 +3,7 @@
 '''
 
 from ged4py import GedcomReader
-import sys, re, logging
+import sys, re, logging, hashlib
 from dateutil.parser import parse
 
 logging.basicConfig(level=logging.INFO)
@@ -157,3 +157,107 @@ class GetBirthYear(Ged2Csv):
                 self.data.append(record)
 
 
+def encrypt(string):
+    '''
+    Encrypt a string using sha256. Returns encrypted string as a hexadecimal string.
+    '''
+    # Initialize sha256 object.
+    hash_obj = hashlib.sha256()
+
+    # Feed the sha256 algorithm a string.
+    hash_obj.update(str.encode(string))
+
+    # Get the encrypted ID as a hexadecimal.
+    hash_id = hash_obj.hexdigest()
+
+    return hash_id
+
+class GetEncryptedID(Ged2Csv):
+    def __init__(self, ged_path, csv_path):
+         # Call super-class constructor to initalize genealogy.
+         super( GetEncryptedID, self).__init__(ged_path, csv_path)
+
+         self.ged_reader()
+
+         header = 'ind,hash_id'
+
+         self.write_csv(header)
+
+    def reformat_refn(self, refn):
+        '''
+        Reformat REFN. The REFN is in the format:
+        yyyymmddxxx
+
+        That is, year, month, day and three digits. We want it in this format:
+        ddmmyyxxx
+        '''
+
+        # Make a copy of the original REFN, as we will be over-writing it.
+        refn_orig = refn
+
+        # Remove all whitespace from REFN.
+        refn = ''.join(refn.split())
+
+        # If the ID contains a hyphen, remove it.
+        idx = refn.find('-')
+        if idx > -1:
+            # Hyphen found. Remove it from string.
+            refn = refn[:idx] + refn[idx+1:]
+
+        # Check formatting of ID.
+        if len(refn) != 11:
+            logging.warning('REFN should be of length 11 (excluding hyphen). Ignoring record with REFN: %s' % refn_orig)
+            return None
+
+        # REFN ending with "000" are not "real" IDs.
+        if refn[-3:] == '000':
+            return None
+
+        # Get birth date and three cipher ID from REFN.
+        yyyy = refn[:4]
+        mm = refn[4:6]
+        dd = refn[6:8]
+        xxx = refn[8:11]
+
+        # Use two last digits of date.
+        yy = yyyy[-2:]
+
+        # Format new ID.
+        pid = dd + mm + yy + xxx
+
+        return pid
+
+
+    def ged_reader(self):
+        count_none_rin = 0
+
+        # Initialize GED parser.
+        with GedcomReader(self.ged_path, encoding='utf-8') as parser:
+            # iterate over all INDI records
+            for i, record in enumerate(parser.records0('INDI')):
+                # Get individual RIN ID.
+                ind_ref = self.format_rin(record.xref_id)
+
+                # Get information about individual in a dictionary.
+                ind_records = {r.tag: r for r in record.sub_records}
+
+                # Get the record with tag "REFN".
+                refn = ind_records.get('REFN')
+
+                # If we are not able to make an encrypted ID, it will be "NA".
+                hash_id = 'NA'
+                if refn is not None:
+                    refn = refn.value
+
+                    # Reformat the ID.
+                    pid = self.reformat_refn(refn)
+
+                    # If it was possible to get the ID in the correct format, we encrypt
+                    # it using sha256.
+                    if pid is not None:
+                        # Encrypt the personal ID.
+                        hash_id = encrypt(pid)
+
+                # Append a tuple to the data list.
+                record = (ind_ref, hash_id)
+                self.data.append(record)

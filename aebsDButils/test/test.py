@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import unittest, logging
-from aebsDButils.ged2csv import Ged2Genealogy, GetBirthYear
+from aebsDButils.ged2csv import Ged2Genealogy, GetBirthYear, GetEncryptedID, encrypt
 from aebsDButils.read_csv import read_csv
 
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +21,7 @@ EXPECTED_BP = TEST_DATA_DIR + 'expected_bp.csv'
 ACTUAL_GEN = TEST_DATA_DIR + 'actual_gen.csv'
 ACTUAL_BY = TEST_DATA_DIR + 'actual_by.csv'
 ACTUAL_BP = TEST_DATA_DIR + 'actual_bp.csv'
+ACTUAL_HASHID = TEST_DATA_DIR + 'actual_hash_id.csv'
 
 class TestGen(unittest.TestCase):
 
@@ -78,7 +79,7 @@ class TestGetBirthYear(unittest.TestCase):
         logging.info('Setup birth year tests')
         logging.info('------------')
 
-    def test_write_gen_csv(self):
+    def test_write_by_csv(self):
         # FIXME: a lot of redundant code here. How to generalize?
 
         logging.info('Read birth year from GED and write to CSV')
@@ -124,6 +125,44 @@ class TestGetBirthYear(unittest.TestCase):
         logging.info('------------')
         logging.info('Teardown')
 
+class TestGetHashID(unittest.TestCase):
+
+    def setUp(self):
+        logging.info('Setup hash ID tests')
+        logging.info('------------')
+
+    def test_write_hashid_csv(self):
+        logging.info('Read REFN from GED, encrypt it, and write to CSV')
+        logging.info('------------')
+
+        # Read the GED file and write genealogy to CSV.
+        gedreader = GetEncryptedID(TEST_GED, ACTUAL_HASHID)
+
+        # Read the CSV that was just created.
+        actual_data = read_csv(ACTUAL_HASHID)
+
+        logging.info('Test reformatting REFN and encrypting it')
+        logging.info('------------')
+
+        # All these REFN are equivalent.
+        refn_list = ['19000101123', '19000101-123', '19000101 123']
+
+        # Reformat all REFN.
+        pid_list = [gedreader.reformat_refn(refn) for refn in refn_list]
+
+        # If reformatting of a REFN is not possible, None is returned. This shouldn't happen here.
+        self.assertTrue(None not in pid_list, 'Reformatting of one or more REFN failed.')
+
+        # Encrypt the PIDs.
+        encrypted_pid = [encrypt(refn) for refn in pid_list]
+
+        # Since all REFN are equivalent, there should only be one unique hash ID.
+        self.assertTrue(len(set(encrypted_pid)) == 1, 'Encrypting of one or more REFN failed.')
+
+
+    def tearDown(self):
+        logging.info('------------')
+        logging.info('Teardown')
 
 if __name__ == '__main__':
     unittest.main()
