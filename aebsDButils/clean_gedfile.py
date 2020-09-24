@@ -4,6 +4,7 @@ NOTE: this code is untested.
 '''
 
 import logging
+from aebsDButils.utils import is_int
 
 logging.basicConfig(level=logging.INFO)
 
@@ -32,16 +33,6 @@ def dos2unix(inpath, outpath):
 	    output.write(line + b'\n')
 
     logging.info("Done. Stripped %s bytes." % (len(content) - outsize))
-
-def is_int(string):
-    '''
-    Checks whether string represents an integer.
-    '''
-    try:
-        int(string)
-    except ValueError:
-        return False
-    return True
 
 def remove_unwanted_newlines(inpath, outpath):
     with open(inpath) as fid:
