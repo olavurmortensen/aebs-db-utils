@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import unittest, logging
-from aebsDButils.ged2csv import Ged2Genealogy, GetBirthYear, GetEncryptedID, encrypt
+from aebsDButils.ged2csv import Ged2Genealogy, GetBirthYear, GetEncryptedID
+from aebsDButils.utils import encrypt, check_pid
 from aebsDButils.read_csv import read_csv
 
 logging.basicConfig(level=logging.INFO)
@@ -149,6 +150,10 @@ class TestGetHashID(unittest.TestCase):
 
         # Reformat all REFN.
         pid_list = [gedreader.reformat_refn(refn) for refn in refn_list]
+
+        # Check PID formatting.
+        for pid in pid_list:
+            check_pid(pid)
 
         # If reformatting of a REFN is not possible, None is returned. This shouldn't happen here.
         self.assertTrue(None not in pid_list, 'Reformatting of one or more REFN failed.')

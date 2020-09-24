@@ -3,6 +3,7 @@
 '''
 
 from ged4py import GedcomReader
+from aebsDButils.utils import encrypt, check_pid
 import sys, re, logging, hashlib
 from dateutil.parser import parse
 
@@ -157,21 +158,6 @@ class GetBirthYear(Ged2Csv):
                 self.data.append(record)
 
 
-def encrypt(string):
-    '''
-    Encrypt a string using sha256. Returns encrypted string as a hexadecimal string.
-    '''
-    # Initialize sha256 object.
-    hash_obj = hashlib.sha256()
-
-    # Feed the sha256 algorithm a string.
-    hash_obj.update(str.encode(string))
-
-    # Get the encrypted ID as a hexadecimal.
-    hash_id = hash_obj.hexdigest()
-
-    return hash_id
-
 class GetEncryptedID(Ged2Csv):
     def __init__(self, ged_path, csv_path):
          # Call super-class constructor to initalize genealogy.
@@ -255,6 +241,9 @@ class GetEncryptedID(Ged2Csv):
                     # If it was possible to get the ID in the correct format, we encrypt
                     # it using sha256.
                     if pid is not None:
+                        # Check that the personal ID is correctly formatted.
+                        check_pid(pid)
+
                         # Encrypt the personal ID.
                         hash_id = encrypt(pid)
 
