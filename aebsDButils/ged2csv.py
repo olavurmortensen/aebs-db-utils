@@ -16,6 +16,9 @@ class Ged2Csv(object):
          self.csv_path = csv_path
          self.data = []
 
+         logging.info('Reading from GED file: ' + ged_path)
+         logging.info('Writing to CSV file: ' + csv_path)
+
     def format_rin(self, rin):
         '''
         Extract RIN from GEDCOM individual ID. For example, if the ID in the GEDCOM
