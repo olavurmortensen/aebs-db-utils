@@ -54,3 +54,12 @@ check_pid(pid)
 # Encrypt PID.
 hash_id = encrypt(pid)
 ```
+
+### Clean GED file
+
+The GED file may have some issues which means the `ged4py` GED parser won't be able to read it. We can fix this quite simply:
+
+```python
+from aebsDButils.utils import clean_ged
+clean_ged([DIRTY GED PATH], [CLEANED GED PATH])
+```
