@@ -16,7 +16,7 @@ pip install git+https://github.com/olavurmortensen/aebs-db-utils.git@master#egg=
 
 ## Usage
 
-Read individual ID (called `RIN` or `xref_id`), father ID, mother ID and sex (`F` or `M`) and write this to a CSV file. The header of the CSV file is `ind,father,mother,sex`.
+Read individual ID (also called `RIN`), father ID, mother ID and sex (`F` or `M`) from GED file and write this to a CSV file. The header of the CSV file is `ind,father,mother,sex`.
 
 ```python
 # Import the class that reads and writes the genealogy.
@@ -25,14 +25,32 @@ from aebsDButils.ged2csv import Ged2Genealogy
 Ged2Genealogy([PATH TO GED], [PATH TO CSV])
 ```
 
+Read `RIN` and birth year from GED file and write to a CSV with `ind,birth_year` header.
+
 ```python
 from aebsDButils.ged2csv import GetBirthYear
 
 GetBirthYear([PATH TO GED], [PATH TO CSV])
 ```
 
+This method reads `RIN` and the `REFN` ID, encrypts `REFN`, and writes this to a CSV with `ind,hash_id` header. The `REFN` ID is reformatted to match the "personal identifier" `PID` before encryption. This uses a sh256 encryption.
+
 ```python
 from aebsDButils.ged2csv import GetEncryptedID
 
 GetEncryptedID([PATH TO GED], [PATH TO CSV])
+```
+
+If we have a `PID` and want to match to a `RIN` using the CSV we created above, we can encrypt the `PID` using the following code.
+
+```python
+from aebsDButils.utils import encrypt, check_pid
+
+# Some pretend PID.
+pid = '123456789'
+
+# Check formatting of PID.
+check_pid(pid)
+# Encrypt PID.
+hash_id = encrypt(pid)
 ```
