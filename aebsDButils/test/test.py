@@ -2,7 +2,7 @@
 
 import unittest, logging
 from aebsDButils.ged2csv import Ged2Genealogy, GetBirthYear, GetEncryptedID
-from aebsDButils.utils import encrypt, check_pid
+from aebsDButils.utils import encrypt, check_pid, clean_ged
 from aebsDButils.read_csv import read_csv
 
 logging.basicConfig(level=logging.INFO)
@@ -12,6 +12,8 @@ TEST_DATA_DIR = 'aebsDButils/test/test_data/'
 
 # Test GED file to read from.
 TEST_GED = TEST_DATA_DIR + 'test_ged.ged'
+TEST_DIRTY_GED = TEST_DATA_DIR + 'dirty_test_ged.ged'
+TEST_CLEANED_GED = TEST_DATA_DIR + 'cleaned_test_ged.ged'
 
 # Expected results.
 EXPECTED_GEN = TEST_DATA_DIR + 'expected_gen.csv'
@@ -164,6 +166,20 @@ class TestGetHashID(unittest.TestCase):
         # Since all REFN are equivalent, there should only be one unique hash ID.
         self.assertTrue(len(set(encrypted_pid)) == 1, 'Encrypting of one or more REFN failed.')
 
+
+    def tearDown(self):
+        logging.info('------------')
+        logging.info('Teardown')
+
+
+class TestCleanGed(unittest.TestCase):
+
+    def setUp(self):
+        logging.info('Setup clean GED file tests')
+        logging.info('------------')
+
+    def test_clean_ged(self):
+        clean_ged(TEST_DIRTY_GED, TEST_CLEANED_GED)
 
     def tearDown(self):
         logging.info('------------')

@@ -55,3 +55,59 @@ def check_pid(pid):
 
     return True
 
+
+def clean_ged(inpath, outpath):
+    '''
+    The GED file often has some newlines that causes ged4py to be unable to parse
+    the file. We remove these lines in this function.
+
+    Arguments:
+    ----------
+    inpath  :   String
+        Input file as a string.
+    outpath :   String
+        Output file as a string.
+    '''
+
+    with open(inpath) as fid:
+        intext = fid.read()
+
+    inlines = intext.splitlines()
+
+    n_empty_lines = 0
+    n_cont = 0
+    outtext = ''
+    n_stripped = 0
+    for i, line in enumerate(inlines):
+        # Strip line of whitespace.
+        temp = line
+        line = line.strip()
+
+        # Add number of characters stripped from line to tally.
+        n_stripped += len(temp) - len(line)
+
+        # Just print first line, which should be '0 HEAD'.
+        if i == 0:
+            outtext += line
+            continue
+
+        if len(line) == 0:
+            # Empty line, ignore.
+            n_empty_lines += 1
+            continue
+        elif not is_int(line[0]):
+            # Continuation of previous line.
+            outtext += ' ' + line
+            n_cont += 1
+        else:
+            # End previous line with newline.
+            # Write the next line.
+            outtext += '\n' + line
+
+    logging.info('Stripped %d whitespace characters.' % n_stripped)
+    logging.info('Discarded %d empty lines' % n_empty_lines)
+    logging.info('Collapsed %d lines where a data field contained multiple lines.' % n_cont)
+
+    with open(outpath, 'w') as fid:
+        fid.write(outtext)
+
