@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 INSTALL_REQUIRES = ['ged4py>=0.1.11',
-        'python-dateutil>=2.8.1 ']
+        'python-dateutil>=2.8.1']
 
 setuptools.setup(
     name="aebsDButils",
