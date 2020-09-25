@@ -39,6 +39,14 @@ def check_pid(pid):
 
     If any problem with the ID is found, an error is raised. Otherwise, the function
     returns `True`.
+
+    Arguments:
+    ----------
+    pid :   String
+
+    Returns:
+    ----------
+    Boolean
     '''
 
     assert is_int(pid), 'Error: personal ID is not an integer: ' + pid
@@ -51,7 +59,7 @@ def check_pid(pid):
     try:
         datetime.datetime.strptime(pid_date, '%d%m%y')
     except ValueError:
-        assert False, 'Error: personal ID does not contain a proper date: ' + pid
+        return False
 
     return True
 

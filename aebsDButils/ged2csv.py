@@ -125,6 +125,7 @@ class GetBirthYear(Ged2Csv):
 
         # Initialize GED parser.
         with GedcomReader(self.ged_path, encoding='utf-8') as parser:
+            n_na = 0
             # iterate over all INDI records
             for i, record in enumerate(parser.records0('INDI')):
                 # Get individual RIN ID.
@@ -156,9 +157,14 @@ class GetBirthYear(Ged2Csv):
                         else:
                             logging.info('Could not parse birth date of record %s: %s' % (ind_ref, birth_date_str))
 
+                if birth_year == 'NA':
+                    n_na += 1
+
                 # Append a tuple to the data list.
                 record = (ind_ref, birth_year)
                 self.data.append(record)
+
+        logging.info('Number of records with NA birth year: %d' % n_na)
 
 
 class GetEncryptedID(Ged2Csv):
@@ -222,6 +228,7 @@ class GetEncryptedID(Ged2Csv):
 
         # Initialize GED parser.
         with GedcomReader(self.ged_path, encoding='utf-8') as parser:
+            n_na = 0
             # iterate over all INDI records
             for i, record in enumerate(parser.records0('INDI')):
                 # Get individual RIN ID.
@@ -245,11 +252,19 @@ class GetEncryptedID(Ged2Csv):
                     # it using sha256.
                     if pid is not None:
                         # Check that the personal ID is correctly formatted.
-                        check_pid(pid)
+                        pid_ok = check_pid(pid)
 
-                        # Encrypt the personal ID.
-                        hash_id = encrypt(pid)
+                        if pid_ok:
+                            # Encrypt the personal ID.
+                            hash_id = encrypt(pid)
+                        else:
+                            logging.warning('PID %s (corresponding to REFN %s) does not contain a proper date' %(pid, refn))
+
+                if hash_id == 'NA':
+                    n_na += 1
 
                 # Append a tuple to the data list.
                 record = (ind_ref, hash_id)
                 self.data.append(record)
+
+        logging.info('Number of records with NA hash ID: %d' % n_na)
