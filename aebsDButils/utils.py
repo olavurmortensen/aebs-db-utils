@@ -133,7 +133,7 @@ def format_date_year(date):
     year = None
 
     # All the different formats to try.
-    date_format_list = ['%d %b %Y', '%Y', 'ABOUT %Y', 'UML %Y', 'FYR %Y', 'FYRI %Y']
+    date_format_list = ['%d %b %Y', '%b %Y','%Y', 'ABOUT %Y', 'UML %Y', 'FYR %Y', 'FYRI %Y']
 
     for date_format in date_format_list:
         try:
