@@ -8,7 +8,7 @@ from aebsDButils.utils import is_int
 
 logging.basicConfig(level=logging.INFO)
 
-def dos2unix(intext, outtext):
+def dos2unix(intext):
     '''
     Convert DOS linefeeds (crlf) to unix (lf).
 
@@ -27,14 +27,14 @@ def dos2unix(intext, outtext):
     outtext = ''
     for line in intext.splitlines():
         outsize += len(line) + 1
-        outtext += line + b'\n'
+        outtext += line + '\n'
 
     logging.info("Done. Stripped %s bytes." % (len(intext) - outsize))
 
     return outtext
 
 
-def remove_unwanted_newlines(intext, outtext):
+def remove_unwanted_newlines(intext):
     '''
     The GED file often has some newlines that causes ged4py to be unable to parse
     the file. We remove these lines in this function.
