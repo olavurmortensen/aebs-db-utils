@@ -159,10 +159,10 @@ class GetBirthYear(Ged2Csv):
 
                 if birth_year == 'NA':
                     n_na += 1
-
-                # Append a tuple to the data list.
-                record = (ind_ref, birth_year)
-                self.data.append(record)
+                else:
+                    # Append a tuple to the data list.
+                    record = (ind_ref, birth_year)
+                    self.data.append(record)
 
         logging.info('Number of records with NA birth year: %d' % n_na)
 
@@ -262,9 +262,9 @@ class GetEncryptedID(Ged2Csv):
 
                 if hash_id == 'NA':
                     n_na += 1
-
-                # Append a tuple to the data list.
-                record = (ind_ref, hash_id)
-                self.data.append(record)
+                else:
+                    # Append a tuple to the data list.
+                    record = (ind_ref, hash_id)
+                    self.data.append(record)
 
         logging.info('Number of records with NA hash ID: %d' % n_na)
