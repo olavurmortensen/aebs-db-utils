@@ -58,8 +58,11 @@ def check_pid(pid):
 
 def clean_ged(inpath, outpath):
     '''
-    The GED file often has some newlines that causes ged4py to be unable to parse
-    the file. We remove these lines in this function.
+    The GED files sometimes have some issues that means ged4py can't parse them. Some
+    issues addressed are:
+    * Fields spanning multiple lines
+    * DOS newlines/linefeed
+    * Trailing whitespace
 
     Arguments:
     ----------
