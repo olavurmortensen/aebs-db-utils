@@ -114,3 +114,40 @@ def clean_ged(inpath, outpath):
     with open(outpath, 'w') as fid:
         fid.write(outtext)
 
+def format_date_year(date):
+    '''
+    The dates in AEBS are not represented in any standard fashion, so we have to try
+    several formats. If we are able to parse the date, we return the year.
+
+    Arguments:
+    ----------
+    date    :   String
+
+    Returns:
+    ----------
+    String
+        Year.
+    '''
+
+    # If we can't parse the data, None will be returned.
+    year = None
+
+    # All the different formats to try.
+    date_format_list = ['%d %b %Y', '%Y', 'ABOUT %Y', 'UML %Y', 'FYR %Y', 'FYRI %Y']
+
+    for date_format in date_format_list:
+        try:
+            # Parse the date.
+            dt = datetime.datetime.strptime(date, date_format)
+        except ValueError:
+            # Could not parse with this format.
+            pass
+        else:
+            # Parsing using this format worked. Get the year from the datetime object.
+            year = str(dt.year)
+
+    return year
+
+
+
+

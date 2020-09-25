@@ -3,9 +3,8 @@
 '''
 
 from ged4py import GedcomReader
-from aebsDButils.utils import encrypt, check_pid
+from aebsDButils.utils import encrypt, check_pid, format_date_year
 import sys, re, logging, hashlib
-from dateutil.parser import parse
 
 logging.basicConfig(level=logging.INFO)
 
@@ -149,11 +148,12 @@ class GetBirthYear(Ged2Csv):
 
                         # Unfortunately, the dates are inconsistently formateed.
                         # Use dateutils to automatically parse the date and get the birth year.
-                        # If this fails, we simply skip it.
-                        try:
-                            dt = parse(birth_date_str)
-                            birth_year = str(dt.year)
-                        except:
+                        birth_year_fmt = format_date_year(birth_date_str)
+
+                        # If we were not able to parse the date, use NA.
+                        if birth_year_fmt is not None:
+                            birth_year = birth_year_fmt
+                        else:
                             logging.info('Could not parse birth date of record %s: %s' % (ind_ref, birth_date_str))
 
                 # Append a tuple to the data list.
