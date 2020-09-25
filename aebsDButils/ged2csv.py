@@ -37,7 +37,7 @@ class Ged2Csv(object):
 
         len_record0 = len(self.data[0])
 
-        logging.info('Writing %d records to CSV.' % len_record0)
+        logging.info('Writing CSV with %d columns and %d rows.' % (len_record0, len(self.data)))
 
         for i, record in enumerate(self.data):
             assert isinstance(record, tuple), 'Error: "data" must be a list of tuples.'
